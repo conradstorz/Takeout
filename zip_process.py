@@ -1,9 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # importing required modules 
 from loguru import logger
 from zipfile import ZipFile 
 from time import sleep
 from tqdm import tqdm
 
+# Logging Setup
 logger.remove()  # removes the default console logger provided by Loguru.
 # I find it to be too noisy with details more appropriate for file logging.
 # INFO and messages of higher priority only shown on the console.
@@ -11,23 +15,8 @@ logger.add(lambda msg: tqdm.write(msg, end=""), format="{message}", level="INFO"
 # This creates a logging sink and handler that puts all messages at or above the TRACE level into a logfile for each run.
 logger.add("file_{time}.log", level="TRACE", encoding="utf8")  # Unicode instructions needed to avoid file write errors.
 
-# specifying the zip file name 
-file_name = "takeout-20200903T200301Z-119.zip"
-
-@logger.catch()
-def zip_file_extract_all():
-    # opening the zip file in READ mode 
-    with ZipFile(file_name, 'r') as zip: 
-        # printing all the contents of the zip file 
-        zip.printdir() 
-
-        # extracting all the files 
-        logger.info('Extracting all the files now...') 
-        try:
-            zip.extractall() 
-        except FileNotFoundError as e:
-            logger.info(e)
-        logger.info('Done!') 
+# specifying the zip file name to process
+file_name = "./SAMPLE_ZIPS/takeout-20200903T200301Z-119.zip"
 
 
 import datetime

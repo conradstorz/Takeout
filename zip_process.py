@@ -3,9 +3,10 @@
 
 # importing required modules 
 from loguru import logger
-from zipfile import ZipFile 
+from zipfile import ZipFile, error 
 from time import sleep
 from tqdm import tqdm
+from pathlib import Path
 
 # Logging Setup
 logger.remove()  # removes the default console logger provided by Loguru.
@@ -18,9 +19,11 @@ logger.add("file_{time}.log", level="TRACE", encoding="utf8")  # Unicode instruc
 # specifying the zip file name to process
 file_name = "./SAMPLE_ZIPS/takeout-20200903T200301Z-119.zip"
 
+from cfsiv_utils.filehandling import get_files
 
 import datetime
 import os
+
 @logger.catch()
 def zip_data_explorer(flnm):
     s_extracted_files = []
@@ -75,19 +78,28 @@ def extract_bad_path_files(flnm, flst):
     return (s_extracted_files, s_failed_files)
 
 
-e,f = zip_data_explorer(file_name)
-logger.info(f'Number of Extracted files: {len(e)}')
-logger.info(f'Failed files: {len(f)}')
-logger.info('Retrying bad files...')
-e2,f2 = extract_bad_path_files(file_name, f)
-logger.info(f'Number of Extracted files: {len(e2)}')
-if len(f2) < 1:
-    logger.info('Success! All files extracted.')
-else:
-    logger.info(f'Continued Failed files: {f2}')
+
+@logger.catch()
+def Main():
+    e,f = zip_data_explorer(file_name)
+    logger.info(f'Number of Extracted files: {len(e)}')
+    logger.info(f'Failed files: {len(f)}')
+    logger.info('Retrying bad files...')
+    e2,f2 = extract_bad_path_files(file_name, f)
+    logger.info(f'Number of Extracted files: {len(e2)}')
+    if len(f2) < 1:
+        logger.info('Success! All files extracted.')
+    else:
+        logger.info(f'Continued Failed files: {f2}')
+    print(Path.cwd())
+    files = get_files('S:')
+    print(len(files))
+    print(Path.cwd())
+    return True
 
 
-
+if __name__ == "__main__":
+    Main()
 
 """
 notes:

@@ -14,7 +14,7 @@ logger.remove()  # removes the default console logger provided by Loguru.
 # INFO and messages of higher priority only shown on the console.
 logger.add(lambda msg: tqdm.write(msg, end=""), format="{message}", level="INFO")
 # This creates a logging sink and handler that puts all messages at or above the TRACE level into a logfile for each run.
-logger.add("file_{time}.log", level="TRACE", encoding="utf8")  # Unicode instructions needed to avoid file write errors.
+logger.add("./LOGS/file_{time}.log", level="TRACE", encoding="utf8")  # Unicode instructions needed to avoid file write errors.
 
 # specifying the zip file name to process
 file_name = "./SAMPLE_ZIPS/takeout-20200903T200301Z-119.zip"
@@ -71,6 +71,9 @@ def extract_bad_path_files(flnm, flst):
                 logger.info('Could not extract!!!')    
                 # TODO find a way to extract this file to a safe path.
                 s_failed_files.append(file)   
+            except KeyError as e: # occurs when trying to extract files that don't exist in zip.
+                logger.debug(f'File, {file}, was not found in zip: {flnm}')
+                return (s_extracted_files, s_failed_files)
             with open(output, 'wb') as w:
                 w.write(filebytes)         
             s_extracted_files.append(file)              
@@ -81,20 +84,20 @@ def extract_bad_path_files(flnm, flst):
 
 @logger.catch()
 def Main():
-    e,f = zip_data_explorer(file_name)
-    logger.info(f'Number of Extracted files: {len(e)}')
-    logger.info(f'Failed files: {len(f)}')
-    logger.info('Retrying bad files...')
-    e2,f2 = extract_bad_path_files(file_name, f)
-    logger.info(f'Number of Extracted files: {len(e2)}')
-    if len(f2) < 1:
-        logger.info('Success! All files extracted.')
-    else:
-        logger.info(f'Continued Failed files: {f2}')
-    print(Path.cwd())
-    files = get_files('S:')
-    print(len(files))
-    print(Path.cwd())
+    files = get_files('./', '*takeout*.zip')
+    for file in files:
+        print(f'Extracting zip: {file}')
+        e,f = zip_data_explorer(file)
+        logger.info(f'Number of Extracted files: {len(e)}')
+        logger.info(f'Failed files: {len(f)}')
+        logger.info('Retrying bad files...')
+        e2,f2 = extract_bad_path_files(file, f)
+        logger.info(f'Number of Extracted files: {len(e2)}')
+        if len(f2) < 1:
+            logger.info('Success! All files extracted.')
+        else:
+            logger.info(f'Continued Failed files: {f2}')
+        print()
     return True
 
 
